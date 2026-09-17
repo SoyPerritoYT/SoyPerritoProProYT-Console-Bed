@@ -1,173 +1,24 @@
-// 🐶 SoyPerritoProProYT-Bed · puente Web ↔ Bedrock real
-const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
-const { createBot } = require('prismarine-bedrock');
-const { Vec3 } = require('vec3');
+// 🐶 SoyPerritoProProYT-Bed · puente Web ↔ Bedrock real + Modo Amigos
+const express=require('express');const http=require('http');const WebSocket=require('ws');const {createBot}=require('prismarine-bedrock');const {Vec3}=require('vec3');
+const app=express(),server=http.createServer(app),wss=new WebSocket.Server({server});
+app.get('/',(_q,r)=>r.type('html').send('<h1>🐶 SoyPerritoProProYT-Bed</h1><p>🟢 Relay Bedrock + Modo Amigos online.</p>'));app.get('/health',(_q,r)=>r.json({ok:true,service:'SoyPerritoProProYT-Bed',version:5}));
+const online=new Map(),friends=new Map();
+function send(ws,type,data={}){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type,...data}))}function broadcast(type,data={}){for(const ws of online.values())send(ws,type,data)}function listFriends(name){return [...(friends.get(name)||[])].map(n=>({name:n,online:online.has(n)}))}
+function safe(v){try{return JSON.parse(JSON.stringify(v,(_k,x)=>typeof x==='bigint'?Number(x):x))}catch{return null}}function num(v,f=0){const n=Number(v);return Number.isFinite(n)?n:f}
+async function snapshot(bot,ws,r=10,v=8){if(!bot?.entity?.position&&!bot?.self?.position)return;const p=bot.entity?.position||bot.self?.position,cx=Math.floor(p.x),cy=Math.floor(p.y),cz=Math.floor(p.z),blocks=[];for(let x=cx-r;x<=cx+r;x++)for(let z=cz-r;z<=cz+r;z++)for(let y=Math.max(-64,cy-v);y<=Math.min(cy+v,319);y++){try{const b=bot.blockAt(new Vec3(x,y,z));if(b&&b.name&&b.name!=='air')blocks.push({x,y,z,name:b.name,stateId:b.stateId??null})}catch{}}send(ws,'world_snapshot',{center:{x:cx,y:cy,z:cz},blocks,blockCount:blocks.length,dimension:bot.game?.dimension??0,gameMode:bot.game?.gameMode??0})}
+function inv(bot){return bot.inventory?(bot.inventory.slots||[]).map((i,slot)=>i?{slot,name:i.name,displayName:i.displayName,count:i.count,stackId:i.stackId??null}:null):[]}
+function players(bot){const out=[],ps=bot.players instanceof Map?bot.players:new Map(Object.entries(bot.players||{}));for(const[id,p]of ps)out.push({runtimeId:String(id),username:p.username||p.name||'Jugador',position:p.position?safe(p.position):null,yaw:num(p.yaw),pitch:num(p.pitch)});return out}
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-app.get('/', (_req, res) => res.type('html').send('<h1>🐶 SoyPerritoProProYT-Bed</h1><p>🟢 Relay Bedrock real online.</p>'));
-app.get('/health', (_req, res) => res.json({ ok: true, service: 'SoyPerritoProProYT-Bed real relay', version: 4 }));
-
-function safe(v) {
-  try { return JSON.parse(JSON.stringify(v, (_k, value) => typeof value === 'bigint' ? Number(value) : value)); } catch { return null; }
-}
-function num(v, fallback = 0) { const n = Number(v); return Number.isFinite(n) ? n : fallback; }
-function send(ws, type, data = {}) { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type, ...data })); }
-
-async function snapshot(bot, ws, radius = 10, vertical = 8) {
-  if (!bot?.entity?.position && !bot?.self?.position) return;
-  const p = bot.entity?.position || bot.self?.position;
-  const cx = Math.floor(p.x), cy = Math.floor(p.y), cz = Math.floor(p.z);
-  const blocks = [];
-  const minY = Math.max(-64, cy - vertical);
-  const maxY = Math.min(cy + vertical, 319);
-  for (let x = cx - radius; x <= cx + radius; x++) {
-    for (let z = cz - radius; z <= cz + radius; z++) {
-      for (let y = minY; y <= maxY; y++) {
-        try {
-          const b = bot.blockAt(new Vec3(x, y, z));
-          if (b && b.name && b.name !== 'air') blocks.push({ x, y, z, name: b.name, stateId: b.stateId ?? null });
-        } catch {}
-      }
-    }
-  }
-  send(ws, 'world_snapshot', { center: { x: cx, y: cy, z: cz }, blocks, blockCount: blocks.length, dimension: bot.game?.dimension ?? 0, gameMode: bot.game?.gameMode ?? 0 });
-}
-
-function inventorySnapshot(bot) {
-  const inv = bot.inventory;
-  if (!inv) return [];
-  return (inv.slots || []).map((item, slot) => item ? { slot, name: item.name, displayName: item.displayName, count: item.count, stackId: item.stackId ?? null } : null);
-}
-function playersSnapshot(bot) {
-  const out = [];
-  const players = bot.players instanceof Map ? bot.players : new Map(Object.entries(bot.players || {}));
-  for (const [id, p] of players) out.push({ runtimeId: String(id), username: p.username || p.name || 'Jugador', position: p.position ? safe(p.position) : null, yaw: num(p.yaw), pitch: num(p.pitch) });
-  return out;
-}
-
-wss.on('connection', ws => {
-  let bot = null;
-  let syncing = false;
-  let lastSnapshot = 0;
-  const controls = { forward:false, back:false, left:false, right:false, jump:false, sprint:false, sneak:false, swim:false };
-
-  send(ws, 'ready', { service: 'SoyPerritoProProYT-Bed real relay', protocol: 'Bedrock' });
-  const bind = (event, fn) => { try { bot.on(event, fn); } catch {} };
-  const applyControls = () => {
-    if (!bot) return;
-    for (const [name, value] of Object.entries(controls)) {
-      try { bot.setControlState(name, value); } catch {}
-    }
-  };
-  const controlTimer = setInterval(applyControls, 50);
-
-  async function sendSnapshot(force = false) {
-    if (!bot || syncing) return;
-    const now = Date.now();
-    if (!force && now - lastSnapshot < 1400) return;
-    lastSnapshot = now; syncing = true;
-    try { await snapshot(bot, ws, 10, 8); } finally { syncing = false; }
-  }
-
-  ws.on('message', async raw => {
-    try {
-      const msg = JSON.parse(raw.toString());
-      if (msg.type === 'ping') return send(ws, 'pong', { time: Date.now() });
-
-      if (msg.type === 'connect') {
-        const host = String(msg.host || '').trim();
-        const port = Number(msg.port || 19132);
-        const username = String(msg.username || 'SoyPerrito').trim().slice(0, 16) || 'SoyPerrito';
-        const version = String(msg.version || '').trim() || undefined;
-        const offline = msg.offline !== false;
-        if (!host || !Number.isInteger(port) || port < 1 || port > 65535) return send(ws, 'error', { message: 'Host o puerto no válido.' });
-        try { bot?.disconnect('Nueva conexión'); } catch {}
-        Object.keys(controls).forEach(k => controls[k] = false);
-        send(ws, 'connecting', { host, port, username, version: version || 'auto' });
-        try {
-          bot = createBot({ host, port, username, offline, ...(version ? { version } : {}), loggingEnabled: false, worldDecodeEnabled: true, physicsEnabled: true, chunkRadius: 6 });
-        } catch (e) { return send(ws, 'error', { message: e.message || String(e) }); }
-
-        bind('join', () => send(ws, 'connected', { host, port, username, version: bot.version }));
-        bind('spawn', async () => {
-          send(ws, 'spawn', { position: safe(bot.entity?.position || bot.self?.position), game: safe(bot.game) });
-          send(ws, 'players', { records: playersSnapshot(bot) });
-          send(ws, 'inventory', { slots: inventorySnapshot(bot) });
-          await sendSnapshot(true);
-        });
-        bind('game', () => send(ws, 'game', { game: safe(bot.game) }));
-        bind('health', () => send(ws, 'health', { health: bot.playerState?.health ?? bot.entity?.health ?? null }));
-        bind('time', data => send(ws, 'world_time', { packet: safe(data) }));
-        bind('chat', data => send(ws, 'chat', { source: data.username || data.source_name || data.sender || '', message: data.message || String(data) }));
-        bind('physicsTick', () => {
-          applyControls();
-          const p = bot.entity?.position || bot.self?.position;
-          if (p) send(ws, 'self', { position: safe(p), yaw: num(bot.entity?.yaw || bot.self?.yaw), pitch: num(bot.entity?.pitch || bot.self?.pitch) });
-        });
-        bind('diggingCompleted', data => { send(ws, 'block_update', { action: 'break', block: safe(data.block) }); sendSnapshot(true); });
-        bind('diggingAborted', data => send(ws, 'action_error', { action: 'break', message: data?.error?.message || 'No se pudo romper.' }));
-        bind('blockPlaceRequested', data => send(ws, 'block_place', safe(data)));
-        bind('close', reason => send(ws, 'disconnected', { reason: String(reason || 'Servidor desconectado') }));
-        bind('error', err => send(ws, 'error', { message: err?.message || String(err) }));
-        return;
-      }
-
-      if (!bot) return send(ws, 'error', { message: 'Conecta primero a un servidor.' });
-      if (msg.type === 'controls') {
-        for (const name of Object.keys(controls)) if (typeof msg[name] === 'boolean') controls[name] = msg[name];
-        applyControls();
-        return;
-      }
-      if (msg.type === 'look') {
-        try {
-          // El navegador trabaja en grados; Mineflayer/Prismarine trabaja en radianes.
-          const yaw = num(msg.yaw) * Math.PI / 180;
-          const pitch = num(msg.pitch) * Math.PI / 180;
-          await bot.look(yaw, pitch, true);
-        } catch (e) { send(ws, 'error', { message: e.message || String(e) }); }
-        return;
-      }
-      if (msg.type === 'chat') {
-        const text = String(msg.message || '').trim().slice(0, 256);
-        if (text) try { bot.chat(text); } catch (e) { send(ws, 'error', { message: e.message || String(e) }); }
-        return;
-      }
-      if (msg.type === 'command') {
-        const command = String(msg.command || '').trim().slice(0, 256);
-        if (command) try { await bot.command(command); } catch (e) { send(ws, 'error', { message: e.message || String(e) }); }
-        return;
-      }
-      if (msg.type === 'sync_world') { await sendSnapshot(true); return; }
-      if (msg.type === 'inventory') return send(ws, 'inventory', { slots: inventorySnapshot(bot) });
-      if (msg.type === 'break') {
-        const x = Math.floor(num(msg.x)), y = Math.floor(num(msg.y)), z = Math.floor(num(msg.z));
-        try {
-          const block = bot.blockAt(new Vec3(x, y, z));
-          if (!block || block.name === 'air') return send(ws, 'action_error', { action: 'break', message: 'Bloque no cargado.' });
-          await bot.dig(block, true); await sendSnapshot(true);
-        } catch (e) { send(ws, 'action_error', { action: 'break', message: e.message || String(e) }); }
-        return;
-      }
-      if (msg.type === 'place') {
-        const x = Math.floor(num(msg.x)), y = Math.floor(num(msg.y)), z = Math.floor(num(msg.z));
-        try {
-          const reference = bot.blockAt(new Vec3(x, y, z));
-          const face = new Vec3(num(msg.fx), num(msg.fy), num(msg.fz));
-          await bot.placeBlock(reference, face, { waitForUpdate: true }); await sendSnapshot(true);
-        } catch (e) { send(ws, 'action_error', { action: 'place', message: e.message || String(e) }); }
-        return;
-      }
-      if (msg.type === 'disconnect') { try { bot.disconnect('Desconectado desde SoyPerritoProProYT-Bed'); } catch {} bot = null; send(ws, 'disconnected', { reason: 'Desconectado' }); }
-    } catch (e) { send(ws, 'error', { message: e.message || String(e) }); }
-  });
-
-  ws.on('close', () => { clearInterval(controlTimer); try { bot?.disconnect('WebSocket cerrado'); } catch {} });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🐶 SoyPerritoProProYT-Bed real relay listening on ${PORT}`));
+wss.on('connection',ws=>{let bot=null,syncing=false,lastSnapshot=0;const controls={forward:false,back:false,left:false,right:false,jump:false,sprint:false,sneak:false,swim:false};let username='';
+const apply=()=>{if(!bot)return;for(const[k,v]of Object.entries(controls))try{bot.setControlState(k,v)}catch{}};const timer=setInterval(apply,50);const bind=(e,f)=>{try{bot.on(e,f)}catch{}};
+async function snap(force=false){if(!bot||syncing)return;const now=Date.now();if(!force&&now-lastSnapshot<1400)return;lastSnapshot=now;syncing=true;try{await snapshot(bot,ws)}finally{syncing=false}}
+ws.on('message',async raw=>{try{const m=JSON.parse(raw.toString());
+if(m.type==='presence_join'){username=String(m.username||'').trim().slice(0,16);if(!username)return send(ws,'error',{message:'Nombre requerido.'});online.set(username,ws);if(!friends.has(username))friends.set(username,new Set());send(ws,'presence',{name:username,online:true,friends:listFriends(username)});broadcast('presence_update',{name:username,online:true});return}
+if(m.type==='friends_list'){send(ws,'friends',{records:listFriends(username)});return}
+if(m.type==='friend_add'){const target=String(m.name||'').trim().slice(0,16);if(!username||!target)return;const set=friends.get(username)||new Set();set.add(target);friends.set(username,set);send(ws,'friends',{records:listFriends(username)});if(online.has(target))send(online.get(target),'friend_request',{from:username});return}
+if(m.type==='friend_remove'){const target=String(m.name||'').trim();friends.get(username)?.delete(target);return send(ws,'friends',{records:listFriends(username)})}
+if(m.type==='ping')return send(ws,'pong',{time:Date.now()});
+if(m.type==='connect'){const host=String(m.host||'').trim(),port=Number(m.port||19132),user=String(m.username||username||'SoyPerrito').trim().slice(0,16)||'SoyPerrito',version=String(m.version||'').trim()||undefined;if(!host||!Number.isInteger(port)||port<1||port>65535)return send(ws,'error',{message:'Host o puerto no válido.'});username=user;try{bot?.disconnect('Nueva conexión')}catch{};Object.keys(controls).forEach(k=>controls[k]=false);send(ws,'connecting',{host,port,username,version:version||'auto'});try{bot=createBot({host,port,username,offline:m.offline!==false,...(version?{version}:{}),loggingEnabled:false,worldDecodeEnabled:true,physicsEnabled:true,chunkRadius:6})}catch(e){return send(ws,'error',{message:e.message||String(e)})}bind('join',()=>send(ws,'connected',{host,port,username,version:bot.version}));bind('spawn',async()=>{send(ws,'spawn',{position:safe(bot.entity?.position||bot.self?.position),game:safe(bot.game)});send(ws,'players',{records:players(bot)});send(ws,'inventory',{slots:inv(bot)});await snap(true)});bind('health',()=>send(ws,'health',{health:bot.playerState?.health??bot.entity?.health??null}));bind('chat',d=>send(ws,'chat',{source:d.username||d.source_name||d.sender||'',message:d.message||String(d)}));bind('physicsTick',()=>{apply();const p=bot.entity?.position||bot.self?.position;if(p)send(ws,'self',{position:safe(p),yaw:num(bot.entity?.yaw||bot.self?.yaw),pitch:num(bot.entity?.pitch||bot.self?.pitch)})});bind('diggingCompleted',d=>{send(ws,'block_update',{action:'break',block:safe(d.block)});snap(true)});bind('close',r=>send(ws,'disconnected',{reason:String(r||'Servidor desconectado')}));bind('error',e=>send(ws,'error',{message:e?.message||String(e)}));return}
+if(!bot)return send(ws,'error',{message:'Conecta primero a un servidor.'});if(m.type==='controls'){for(const k of Object.keys(controls))if(typeof m[k]==='boolean')controls[k]=m[k];apply();return}if(m.type==='look'){try{await bot.look(num(m.yaw)*Math.PI/180,num(m.pitch)*Math.PI/180,true)}catch(e){send(ws,'error',{message:e.message||String(e)})}return}if(m.type==='chat'){const t=String(m.message||'').trim().slice(0,256);if(t)try{bot.chat(t)}catch(e){send(ws,'error',{message:e.message||String(e)})}return}if(m.type==='sync_world')return snap(true);if(m.type==='inventory')return send(ws,'inventory',{slots:inv(bot)});if(m.type==='break'){try{const b=bot.blockAt(new Vec3(Math.floor(num(m.x)),Math.floor(num(m.y)),Math.floor(num(m.z))));if(!b||b.name==='air')return send(ws,'action_error',{action:'break',message:'Bloque no cargado.'});await bot.dig(b,true);await snap(true)}catch(e){send(ws,'action_error',{action:'break',message:e.message||String(e)})}return}if(m.type==='place'){try{const b=bot.blockAt(new Vec3(Math.floor(num(m.x)),Math.floor(num(m.y)),Math.floor(num(m.z))));await bot.placeBlock(b,new Vec3(num(m.fx),num(m.fy),num(m.fz)),{waitForUpdate:true});await snap(true)}catch(e){send(ws,'action_error',{action:'place',message:e.message||String(e)})}return}if(m.type==='disconnect'){try{bot.disconnect('Desconectado')}catch{}bot=null;send(ws,'disconnected',{reason:'Desconectado'})}
+}catch(e){send(ws,'error',{message:e.message||String(e)})}});ws.on('close',()=>{clearInterval(timer);if(username&&online.get(username)===ws){online.delete(username);broadcast('presence_update',{name:username,online:false})}try{bot?.disconnect('WebSocket cerrado')}catch{}})});
+const PORT=process.env.PORT||3000;server.listen(PORT,()=>console.log(`🐶 SoyPerritoProProYT-Bed listening on ${PORT}`));
