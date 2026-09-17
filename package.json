@@ -1,12 +1,12 @@
 {
   "name": "soy-perrito-proproyt-bed-relay",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
-    "bedrock-protocol": "latest",
     "express": "latest",
-    "ws": "latest"
+    "ws": "latest",
+    "prismarine-bedrock": "github:deepslate-bedrock/prismarine-bedrock#main"
   }
 }
