@@ -2,60 +2,71 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>🐶 SoyPerritoProProYT-Bed</title>
+<title>🐶 SoyPerritoProProYT-Bed 3D</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#10141b;color:#fff;font-family:Arial,sans-serif}main{max-width:1050px;margin:auto;padding:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.top h1{margin:5px 0;font-size:25px}.hud{background:#1d2633;border:2px solid #354457;border-radius:12px;padding:8px;font-weight:bold}.game{position:relative;background:#18202a;border:3px solid #394858;border-radius:16px;padding:8px}.wrap{position:relative}.world{display:block;width:100%;height:auto;background:#79cfff;border-radius:10px;image-rendering:pixelated;touch-action:none}.msg{min-height:24px;text-align:center;font-weight:bold}.controls{display:grid;grid-template-columns:repeat(3,62px);gap:6px;justify-content:center;margin:8px}.controls button,.actions button{min-height:52px;border:0;border-radius:12px;background:#303b4a;color:#fff;font-size:20px;font-weight:bold}.actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}.actions button{padding:10px 14px;font-size:14px}.inventory{margin-top:8px;background:#111820;border-radius:12px;padding:8px}.slots{display:flex;gap:5px;flex-wrap:wrap}.slot{width:55px;height:55px;border:2px solid #56677a;border-radius:8px;background:#26313e;color:#fff;font-size:25px}.skins{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.skin{padding:9px;border:0;border-radius:10px;background:#293544;color:#fff;font-size:22px}.free{display:block;font-size:11px;margin-top:2px}.hint{opacity:.8;font-size:13px;text-align:center}@media(max-width:600px){.skins{grid-template-columns:repeat(2,1fr)}.top h1{font-size:20px}}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#0b1118;color:#fff;font-family:Arial,sans-serif}#game{position:fixed;inset:0;background:#79cfff}canvas{display:block;width:100%;height:100%;touch-action:none}.hud{position:fixed;top:10px;left:10px;right:10px;z-index:5;display:flex;gap:8px;justify-content:space-between;align-items:flex-start;pointer-events:none}.panel{background:rgba(12,18,25,.78);border:2px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;font-weight:bold;text-shadow:1px 1px #000}.title{font-size:18px}.stats{font-size:14px}.cross{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;font-size:26px;font-weight:bold;text-shadow:0 2px 3px #000;pointer-events:none}.msg{position:fixed;left:50%;bottom:105px;transform:translateX(-50%);z-index:6;background:rgba(0,0,0,.65);padding:8px 12px;border-radius:10px;font-weight:bold;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}.hotbar{position:fixed;left:50%;bottom:15px;transform:translateX(-50%);z-index:6;display:flex;gap:5px;padding:6px;background:rgba(10,14,20,.72);border:2px solid #77818c;border-radius:12px}.slot{width:54px;height:54px;border:2px solid #64707c;border-radius:7px;background:#26313b;color:#fff;font-size:23px;cursor:pointer}.slot.selected{border-color:#fff;box-shadow:0 0 0 2px #f4d35e inset}.touch{position:fixed;z-index:7;bottom:18px;left:15px;display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px 52px;gap:5px}.touch button,.right button{width:52px;height:52px;border:1px solid #8793a0;border-radius:12px;background:rgba(20,27,35,.72);color:#fff;font-size:21px;font-weight:bold}.touch .up{grid-column:2}.touch .left{grid-column:1;grid-row:2}.touch .down{grid-column:2;grid-row:2}.touch .right{grid-column:3;grid-row:2}.right{position:fixed;right:15px;bottom:18px;z-index:7;display:flex;gap:7px;flex-direction:column}.right button{width:58px;height:58px}.menu{position:fixed;top:58px;right:10px;z-index:8;display:flex;gap:6px}.menu button{border:0;border-radius:9px;padding:8px 10px;background:rgba(15,22,30,.82);color:#fff;font-weight:bold}.help{position:fixed;left:10px;bottom:10px;z-index:5;background:rgba(0,0,0,.5);padding:5px 8px;border-radius:8px;font-size:12px}@media(pointer:fine){.touch{display:none}}@media(max-width:650px){.title{font-size:14px}.stats{font-size:12px}.help{display:none}.slot{width:46px;height:46px;font-size:19px}.hotbar{bottom:8px}.msg{bottom:72px}}
 </style>
 </head>
-<body><main>
-<div class="top"><h1>🐶 SoyPerritoProProYT-Bed</h1><div class="hud">❤️ <span id="hp">10</span>/10 &nbsp; 🪙 <span id="coins">0</span> &nbsp; 🧱 <span id="blocks">12</span></div></div>
-<div class="game"><div class="wrap"><canvas id="world" class="world" width="960" height="540"></canvas></div>
-<div class="controls"><span></span><button data-key="ArrowUp">⬆️</button><span></span><button data-key="ArrowLeft">⬅️</button><button id="mine">⛏️</button><button data-key="ArrowRight">➡️</button><span></span><button data-key="ArrowDown">⬇️</button><span></span></div>
-<div class="actions"><button id="mine2">⛏️ ROMPER</button><button id="place">🧱 COLOCAR</button><button id="attack">⚔️ ATACAR</button><button id="eat">🍎 COMER</button><button id="save">💾 GUARDAR</button><button id="load">📂 CARGAR</button><button id="new">🔄 NUEVO MUNDO</button></div>
-<p class="msg" id="msg">🎮 Explora el mundo, consigue bloques y derrota a los enemigos.</p>
-<div class="inventory"><b>🎒 INVENTARIO</b><div class="slots" id="slots"></div></div>
-<h3>👕 8 SKINS GRATIS</h3><div class="skins" id="skins"></div><p class="hint">⌨️ Flechas/WASD para moverte · ESPACIO para atacar · E para romper</p>
-</div></main>
-<script>
-const c=document.getElementById('world'),ctx=c.getContext('2d'),W=c.width,H=c.height;
-let player={x:480,y:330,hp:10,skin:0};let coins=0,blocks=12,day=0,enemy={x:730,y:330,hp:5,alive:true};
-const skins=['🐶','🐶🎮','🐶🧢','🐶⭐','🐶🕶️','🐶👑','🐶💻','🐶🚀'];
-const items=[['🟫','Tierra'],['🟩','Hierba'],['🪨','Piedra'],['🪵','Madera'],['💎','Cristal']];
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function say(t){document.getElementById('msg').textContent=t}
-function renderHUD(){document.getElementById('hp').textContent=player.hp;document.getElementById('coins').textContent=coins;document.getElementById('blocks').textContent=blocks}
-function rect(x,y,w,h,fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
-function drawBlock(x,y,type){let colors=['#8b5a35','#57a63d','#777b82','#8a5a32','#55c9d9'];rect(x,y,40,40,colors[type]);ctx.strokeStyle='rgba(0,0,0,.25)';ctx.strokeRect(x,y,40,40);if(type===1){rect(x,y,40,8,'#6fd04c')}if(type===3){rect(x+8,y,5,40,'#704523');rect(x+28,y,5,40,'#704523')}}
-function draw(){
- let night=(Math.floor(day)%2)===1;ctx.clearRect(0,0,W,H);rect(0,0,W,H,night?'#18233e':'#79cfff');
- ctx.fillStyle=night?'#f0f3ff':'#ffe47a';ctx.beginPath();ctx.arc(night?820:120,90,night?28:38,0,Math.PI*2);ctx.fill();
- rect(0,350,W,190,night?'#244d2c':'#55a63e');
- for(let x=0;x<W;x+=40){let t=((x/40+Math.floor(day))%5===0)?2:1;drawBlock(x,350,t);drawBlock(x,390,0);drawBlock(x,430,2);drawBlock(x,470,0);}
- // árboles
- for(const tx of [100,280,650,870]){rect(tx,285,24,65,'#704523');ctx.fillStyle='#247a35';ctx.beginPath();ctx.arc(tx+12,270,45,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(tx-15,292,30,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(tx+40,292,30,0,Math.PI*2);ctx.fill()}
- // piedras y flores
- for(const px of [190,390,560,800]){ctx.fillStyle='#737982';ctx.beginPath();ctx.arc(px,335,15,0,Math.PI*2);ctx.fill()}
- for(const fx of [60,350,590,940]){ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.arc(fx,335,5,0,Math.PI*2);ctx.fill()}
- // enemigo
- if(enemy.alive){ctx.fillStyle='#a43d3d';ctx.beginPath();ctx.arc(enemy.x,enemy.y,25,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(enemy.x-14,enemy.y-8,8,8);ctx.fillRect(enemy.x+6,enemy.y-8,8,8);ctx.fillStyle='#111';ctx.fillRect(enemy.x-12,enemy.y-6,4,4);ctx.fillRect(enemy.x+8,enemy.y-6,4,4);ctx.fillStyle='#222';ctx.fillRect(enemy.x-18,enemy.y-35,36,5);ctx.fillStyle='#65e26c';ctx.fillRect(enemy.x-18,enemy.y-35,36*(enemy.hp/5),5)}
- // player
- ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(player.x-18,player.y-26,10,12);ctx.fillRect(player.x+8,player.y-26,10,12);ctx.fillStyle='#333';ctx.fillRect(player.x-12,player.y-5,7,7);ctx.fillRect(player.x+5,player.y-5,7,7);ctx.fillStyle='#d88a66';ctx.fillRect(player.x-7,player.y+9,14,5);
- // skin badge
- ctx.font='22px Arial';ctx.textAlign='center';ctx.fillText(skins[player.skin],player.x,player.y-35);ctx.textAlign='left';
- renderHUD();
-}
-function move(dx,dy){player.x=clamp(player.x+dx,30,W-30);player.y=clamp(player.y+dy,220,500);if(enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<55){player.hp--;enemy.x+=enemy.x>player.x?35:-35;if(player.hp<=0){player.hp=10;player.x=480;player.y=330;say('💥 Te derrotaron. Has reaparecido.')}}draw()}
-function mine(){if(blocks<1){say('❌ No tienes bloques para usar.');return}blocks--;coins++;say('⛏️ Has roto un bloque y encontrado una moneda.');draw()}
-function place(){if(blocks<=0){say('❌ No tienes bloques.');return}blocks--;say('🧱 ¡Bloque colocado!');draw()}
-function attack(){if(!enemy.alive){say('🏆 Ya derrotaste al enemigo.');return}if(Math.hypot(enemy.x-player.x,enemy.y-player.y)<100){enemy.hp--;say(enemy.hp?'⚔️ ¡Golpe!':'💥 ¡Enemigo derrotado!');if(enemy.hp<=0){enemy.alive=false;coins+=5;blocks+=5;say('🏆 ¡Enemigo derrotado! +5 monedas y +5 bloques.')}}else say('⚔️ Acércate más para atacar.');draw()}
-function eat(){if(player.hp<10){player.hp=clamp(player.hp+3,0,10);say('🍎 Has recuperado vida.')}else say('❤️ Ya tienes la vida completa.');draw()}
-function save(){localStorage.setItem('spbed-real',JSON.stringify({player,coins,blocks,day,enemy}));say('💾 Partida guardada.');}
-function load(){let s=JSON.parse(localStorage.getItem('spbed-real')||'null');if(!s){say('❌ No hay partida guardada.');return}player=s.player;coins=s.coins;blocks=s.blocks;day=s.day;enemy=s.enemy;draw();say('📂 Partida cargada.')}
-function newWorld(){player={x:480,y:330,hp:10,skin:player.skin};coins=0;blocks=12;day=0;enemy={x:730,y:330,hp:5,alive:true};say('🌍 ¡Nuevo mundo creado!');draw()}
-document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>{let k=b.dataset.key;if(k==='ArrowUp')move(0,-28);if(k==='ArrowDown')move(0,28);if(k==='ArrowLeft')move(-28,0);if(k==='ArrowRight')move(28,0)});
-document.getElementById('mine').onclick=mine;document.getElementById('mine2').onclick=mine;document.getElementById('place').onclick=place;document.getElementById('attack').onclick=attack;document.getElementById('eat').onclick=eat;document.getElementById('save').onclick=save;document.getElementById('load').onclick=load;document.getElementById('new').onclick=newWorld;
-document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='w')move(0,-28);if(e.key==='ArrowDown'||e.key==='s')move(0,28);if(e.key==='ArrowLeft'||e.key==='a')move(-28,0);if(e.key==='ArrowRight'||e.key==='d')move(28,0);if(e.key===' '){e.preventDefault();attack()}if(e.key.toLowerCase()==='e')mine()});
-for(const [icon,name] of items){let d=document.createElement('button');d.className='slot';d.title=name;d.textContent=icon;document.getElementById('slots').appendChild(d)}
-skins.forEach((s,i)=>{let b=document.createElement('button');b.className='skin';b.innerHTML=s+'<span class="free">🆓 GRATIS</span>';b.onclick=()=>{player.skin=i;day+=.1;say('👕 Skin '+(i+1)+' equipada.');draw()};document.getElementById('skins').appendChild(b)});
-setInterval(()=>{day+=.05;draw()},4000);draw();
-</script></body></html>
+<body>
+<div id="game"></div>
+<div class="hud"><div class="panel title">🐶 SoyPerritoProProYT-Bed 3D</div><div class="panel stats">❤️ <span id="hp">10</span> &nbsp; 🪙 <span id="coins">0</span> &nbsp; 🧱 <span id="count">0</span></div></div>
+<div class="cross">+</div>
+<div class="menu"><button id="save">💾</button><button id="load">📂</button><button id="new">🌍</button></div>
+<div class="msg" id="msg">Cargando mundo 3D…</div>
+<div class="hotbar" id="hotbar"></div>
+<div class="touch"><button class="up" data-move="f">⬆️</button><button class="left" data-move="l">⬅️</button><button class="down" data-move="b">⬇️</button><button class="right" data-move="r">➡️</button></div>
+<div class="right"><button id="break">⛏️</button><button id="place">🧱</button><button id="jump">⬆️</button></div>
+<div class="help">PC: WASD · ratón · ESPACIO · clic izquierdo rompe · clic derecho coloca · 1-6 bloques</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+
+const game=document.getElementById('game');
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0x9bd8ff,18,55);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,100);
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;game.appendChild(renderer.domElement);
+const hemi=new THREE.HemisphereLight(0xbfe9ff,0x557044,1.6);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(15,30,10);scene.add(sun);
+
+const mats={grass:new THREE.MeshLambertMaterial({color:0x59a83e}),dirt:new THREE.MeshLambertMaterial({color:0x8b5a35}),stone:new THREE.MeshLambertMaterial({color:0x777d83}),wood:new THREE.MeshLambertMaterial({color:0x8a5a32}),leaves:new THREE.MeshLambertMaterial({color:0x277d36}),sand:new THREE.MeshLambertMaterial({color:0xd7c078}),water:new THREE.MeshLambertMaterial({color:0x3b9ed0,transparent:true,opacity:.72})};
+const types=['grass','dirt','stone','wood','sand','water'];const icons=['🟩','🟫','🪨','🪵','🟨','🟦'];
+const blocks=new Map(),meshes=new Map();const size=28,height=9;let selected=0,coins=0,hp=10,day=0;
+const key=(x,y,z)=>`${x}|${y}|${z}`;
+function addBlock(x,y,z,type,visible=true){if(y<0||y>=height)return;const k=key(x,y,z);blocks.set(k,type);if(visible)makeMesh(x,y,z,type)}
+function removeBlock(x,y,z){const k=key(x,y,z);blocks.delete(k);const m=meshes.get(k);if(m){scene.remove(m);meshes.delete(k)}}
+const geo=new THREE.BoxGeometry(1,1,1);
+function makeMesh(x,y,z,type){const k=key(x,y,z);if(meshes.has(k))scene.remove(meshes.get(k));const m=new THREE.Mesh(geo,mats[type]||mats.grass);m.position.set(x+.5,y+.5,z+.5);m.userData.block={x,y,z,type};scene.add(m);meshes.set(k,m)}
+function refresh(){for(const m of meshes.values())scene.remove(m);meshes.clear();for(const [k,t] of blocks){const [x,y,z]=k.split('|').map(Number);makeMesh(x,y,z,t)}}
+function terrain(){blocks.clear();for(let x=-size/2;x<size/2;x++)for(let z=-size/2;z<size/2;z++){const h=Math.max(1,Math.floor(3+Math.sin(x*.55)*.7+Math.cos(z*.45)*.7+Math.sin((x+z)*.22)*.8));for(let y=0;y<=h;y++)addBlock(x,y,z,y===h?'grass':y>h-3?'dirt':'stone',false);if((x*13+z*7)%37===0&&h<7){for(let y=1;y<=3;y++)addBlock(x,h+y,z,'wood',false);for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=2;dy<=4;dy++)if(Math.abs(dx)+Math.abs(dz)+dy<7)addBlock(x+dx,h+dy,z+dz,'leaves',false)}}refresh()}
+terrain();
+
+const player={pos:new THREE.Vector3(0,6,6),vel:new THREE.Vector3(),yaw:0,pitch:0,onGround:false};camera.position.copy(player.pos);camera.position.y+=1.65;
+function highest(x,z){for(let y=height-1;y>=0;y--)if(blocks.has(key(x,y,z)))return y;return -1}
+player.pos.y=highest(0,6)+1.01;
+const held={w:false,a:false,s:false,d:false};let locked=false;
+renderer.domElement.addEventListener('click',()=>{if(innerWidth>700)renderer.domElement.requestPointerLock?.()});document.addEventListener('pointerlockchange',()=>locked=document.pointerLockElement===renderer.domElement);
+document.addEventListener('mousemove',e=>{if(!locked)return;player.yaw-=e.movementX*.0022;player.pitch-=e.movementY*.0022;player.pitch=Math.max(-1.45,Math.min(1.45,player.pitch))});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='w')held.w=true;if(k==='a')held.a=true;if(k==='s')held.s=true;if(k==='d')held.d=true;if(k===' '){e.preventDefault();jump()}if(/^\d$/.test(e.key)){const n=Number(e.key)-1;if(n>=0&&n<types.length){selected=n;drawHotbar()}}});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k in held)held[k]=false});
+function jump(){if(player.onGround){player.vel.y=7;player.onGround=false}}
+function collides(p){const r=.28;const minX=Math.floor(p.x-r),maxX=Math.floor(p.x+r),minZ=Math.floor(p.z-r),maxZ=Math.floor(p.z+r);for(let x=minX;x<=maxX;x++)for(let z=minZ;z<=maxZ;z++)for(let y=Math.floor(p.y-1.65);y<=Math.floor(p.y+.15);y++)if(blocks.has(key(x,y,z)))return true;return false}
+function update(dt){const speed=5.2;const f=new THREE.Vector3(-Math.sin(player.yaw),0,-Math.cos(player.yaw));const r=new THREE.Vector3(Math.cos(player.yaw),0,-Math.sin(player.yaw));let dir=new THREE.Vector3();if(held.w)dir.add(f);if(held.s)dir.sub(f);if(held.d)dir.add(r);if(held.a)dir.sub(r);if(dir.lengthSq())dir.normalize().multiplyScalar(speed*dt);let np=player.pos.clone();np.x+=dir.x;if(!collides(np))player.pos.x=np.x;np=player.pos.clone();np.z+=dir.z;if(!collides(np))player.pos.z=np.z;player.vel.y-=18*dt;np=player.pos.clone();np.y+=player.vel.y*dt;if(!collides(np)){player.pos.y=np.y;player.onGround=false}else{if(player.vel.y<0)player.onGround=true;player.vel.y=0}if(player.pos.y<-5){player.pos.set(0,highest(0,6)+1.01,6);player.vel.set(0,0,0);hp=10;say('💥 Has reaparecido.')}camera.position.set(player.pos.x,player.pos.y+1.65,player.pos.z);camera.rotation.order='YXZ';camera.rotation.y=player.yaw;camera.rotation.x=player.pitch}
+
+const ray=new THREE.Raycaster();function target(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hits=ray.intersectObjects([...meshes.values()]);return hits[0]}
+function breakBlock(){const h=target();if(!h||h.distance>7){say('⛏️ Mira a un bloque cercano.');return}const b=h.object.userData.block;if(b.y===0){say('🪨 La base no se puede romper.');return}removeBlock(b.x,b.y,b.z);coins++;say('⛏️ Bloque roto +1 🪙');updateHUD()}
+function placeBlock(){const h=target();if(!h||h.distance>7){say('🧱 Mira a una cara de bloque.');return}const b=h.object.userData.block;const n=h.face.normal;const x=b.x+Math.round(n.x),y=b.y+Math.round(n.y),z=b.z+Math.round(n.z);if(y<0||y>=height||blocks.has(key(x,y,z))){say('❌ No puedes colocar ahí.');return}if(Math.hypot(x+.5-player.pos.x,z+.5-player.pos.z)<1.2&&Math.abs(y+1-(player.pos.y+1.65))<2){say('❌ Demasiado cerca.');return}addBlock(x,y,z,types[selected]);coins=Math.max(0,coins-1);say('🧱 Bloque colocado.');updateHUD()}
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){if(e.button===0)breakBlock();if(e.button===2)placeBlock()}});renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+function moveTouch(k){held[k]=true;setTimeout(()=>held[k]=false,220)}document.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('pointerdown',()=>moveTouch({f:'w',b:'s',l:'a',r:'d'}[b.dataset.move])));
+document.getElementById('break').onclick=breakBlock;document.getElementById('place').onclick=placeBlock;document.getElementById('jump').onclick=jump;
+function say(t){const m=document.getElementById('msg');m.textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>m.textContent='🌳 Explora, rompe y construye tu mundo 3D.',2600)}
+function updateHUD(){document.getElementById('hp').textContent=hp;document.getElementById('coins').textContent=coins;document.getElementById('count').textContent=blocks.size}
+function drawHotbar(){const h=document.getElementById('hotbar');h.innerHTML='';types.forEach((t,i)=>{const b=document.createElement('button');b.className='slot'+(i===selected?' selected':'');b.textContent=icons[i];b.title=t;b.onclick=()=>{selected=i;drawHotbar();say('🧱 Seleccionado: '+t)};h.appendChild(b)})}
+function save(){const data={blocks:[...blocks],player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch},coins,hp};localStorage.setItem('spbed3d',JSON.stringify(data));say('💾 Mundo 3D guardado.')}
+function load(){try{const d=JSON.parse(localStorage.getItem('spbed3d')||'null');if(!d){say('❌ No hay mundo guardado.');return}blocks.clear();for(const [k,t] of d.blocks)blocks.set(k,t);refresh();player.pos.set(d.player.x,d.player.y,d.player.z);player.yaw=d.player.yaw;player.pitch=d.player.pitch;coins=d.coins;hp=d.hp;updateHUD();say('📂 Mundo 3D cargado.')}catch{say('❌ No se pudo cargar.')}}
+function newWorld(){terrain();player.pos.set(0,highest(0,6)+1.01,6);player.vel.set(0,0,0);coins=0;hp=10;say('🌍 ¡Nuevo mundo 3D generado!');updateHUD()}
+document.getElementById('save').onclick=save;document.getElementById('load').onclick=load;document.getElementById('new').onclick=()=>{if(confirm('¿Crear un mundo nuevo? Se perderá el mundo actual si no está guardado.'))newWorld()};
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+let last=performance.now();function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;day+=dt*.035;const sunA=(Math.sin(day)+1)/2;sun.position.set(Math.cos(day)*25,10+sunA*25,Math.sin(day)*25);sun.intensity=.5+sunA*1.8;hemi.intensity=.7+sunA*1.1;scene.background=new THREE.Color().setHSL(.56,.75,.55+sunA*.18);scene.fog.color=scene.background;update(dt);renderer.render(scene,camera);requestAnimationFrame(loop)}
+drawHotbar();updateHUD();say('🌍 ¡Mundo 3D listo!');loop(last);
+</script>
+</body>
+</html>
