@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🐶 Servidores · SoyPerritoProProYT-Bed</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(#63c8ff,#19324d);font-family:Arial,sans-serif;color:#fff;padding:18px}.wrap{max-width:900px;margin:auto}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.title{font-size:25px;font-weight:900;text-shadow:2px 3px #000}.card{background:#101820ed;border:2px solid #ffffff33;border-radius:16px;padding:16px;margin-top:14px;box-shadow:0 8px 30px #0008}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:650px){.grid{grid-template-columns:1fr}}label{display:block;font-weight:bold;margin-bottom:5px}input{width:100%;padding:12px;border-radius:10px;border:2px solid #53606c;background:#202b35;color:#fff;font-size:16px}button{border:0;border-radius:10px;padding:11px 14px;background:#2d79c7;color:#fff;font-weight:800;cursor:pointer}button.danger{background:#9c3d3d}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.server{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid #4b5965;border-radius:12px;padding:12px;margin-top:9px;background:#202b35}.server strong{font-size:17px}.muted{color:#b9c5cf;font-size:13px}.empty{text-align:center;color:#b9c5cf;padding:20px}.note{font-size:13px;color:#cbd5dc;line-height:1.5}.pill{display:inline-block;padding:4px 8px;border-radius:99px;background:#315d39;margin-left:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="title">🐶 SoyPerritoProProYT-Bed · Servidores</div><button onclick="location.href='index.html'">🎮 Volver al juego</button></div>
+<div class="card">
+<h2>➕ Añadir servidor</h2>
+<div class="grid">
+<div><label>Nombre</label><input id="name" placeholder="Mi servidor"></div>
+<div><label>IP / dirección</label><input id="ip" placeholder="play.ejemplo.net"></div>
+<div><label>Puerto</label><input id="port" inputmode="numeric" value="19132" placeholder="19132"></div>
+</div>
+<div class="actions"><button onclick="addServer()">⚡ Guardar servidor</button><button onclick="quick()">🧪 Añadir ejemplo</button></div>
+<p class="note">Puedes guardar cualquier servidor Bedrock por nombre, IP y puerto. La página no crea por sí sola un servidor Minecraft real: para que un servidor exista necesitas un servidor/hosting que esté ejecutándose.</p>
+</div>
+<div class="card"><h2>🌐 Mis servidores</h2><div id="list"></div></div>
+</div>
+<script>
+const KEY='spbed-servers';
+function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+function write(a){localStorage.setItem(KEY,JSON.stringify(a));render()}
+function addServer(){const name=document.getElementById('name').value.trim()||'Servidor sin nombre';const ip=document.getElementById('ip').value.trim();const port=Number(document.getElementById('port').value);if(!ip)return alert('Escribe la IP o dirección del servidor.');if(!Number.isInteger(port)||port<1||port>65535)return alert('El puerto debe estar entre 1 y 65535.');const a=read();a.push({id:Date.now(),name,ip,port});write(a);document.getElementById('name').value='';document.getElementById('ip').value='';document.getElementById('port').value='19132'}
+function quick(){document.getElementById('name').value='Mi servidor';document.getElementById('ip').value='127.0.0.1';document.getElementById('port').value='19132'}
+function copyServer(s){navigator.clipboard?.writeText(s.ip+':'+s.port).then(()=>alert('Copiado: '+s.ip+':'+s.port)).catch(()=>prompt('Copia esta dirección:',s.ip+':'+s.port))}
+function removeServer(id){write(read().filter(x=>x.id!==id))}
+function render(){const el=document.getElementById('list'),a=read();if(!a.length){el.innerHTML='<div class="empty">No tienes servidores guardados todavía.</div>';return}el.innerHTML=a.map(s=>`<div class="server"><div><strong>🟢 ${esc(s.name)}</strong><div class="muted">${esc(s.ip)}:${s.port}<span class="pill">Bedrock</span></div></div><div class="actions"><button onclick='copyServer(${JSON.stringify(s)})'>📋 Copiar</button><button class="danger" onclick="removeServer(${s.id})">🗑️</button></div></div>`).join('')}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+render();
+</script>
+</body>
+</html>
